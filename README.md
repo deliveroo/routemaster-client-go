@@ -6,6 +6,17 @@ A go API client and listener for the Routemaster event bus.
 
 **Note:** This is a first draft, and the API is subject to change.
 
+## Install
+
+Since this is (currently) a private repo, you first need to configure `go get`
+to fetch via SSH rather than HTTPS:
+
+	git config --global url."git@github.com:".insteadOf "https://github.com/"
+
+Then you can install via `go get` as usual:
+
+	go get github.com/deliveroo/routemaster-client-go
+
 ## Usage
 
 First, create a new client:
