@@ -7,8 +7,8 @@ SRC := ${SRC_PARENT}/routemaster-client-go/
 all: build test lint vet
 
 link:
-	mkdir -p ${SRC_PARENT}
-	ln -sf $(shell pwd) ${SRC_PARENT}
+	@mkdir -p ${SRC_PARENT}
+	@ln -sf $(shell pwd) ${SRC_PARENT}
 
 install:
 	@cd ${SRC} && go install ./...
