@@ -1,5 +1,7 @@
 # Routemaster Client
 
+[![Build Status](https://travis-ci.com/deliveroo/routemaster-client-go.svg?token=Cn6Bjq9ZZa5MrmKhd9RW&branch=master)](https://travis-ci.com/deliveroo/routemaster-client-go)
+
 `package routemaster`
 
 A go API client and listener for the Routemaster event bus.
