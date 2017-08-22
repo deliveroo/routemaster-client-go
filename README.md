@@ -67,7 +67,12 @@ To push an event to the bus:
 
 To listen to events published on the bus:
 
-	http.Handle("/", listener.New(func(events []*listener.Event) {
-		fmt.Println(events[0].Topic)
-	}))
+	http.Handle("/", listener.New(
+		"demo",
+		func(events []*listener.Event) {
+			for _, e := range events {
+				log.Printf("%v\n", e)
+			}
+		})
+	))
 	http.ListenAndServeTLS(":8123", "server.crt", "server.key", nil)
