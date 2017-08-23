@@ -67,9 +67,9 @@ To push an event to the bus:
 
 To listen to events published on the bus:
 
-	http.Handle("/", listener.New(
+	http.Handle("/", routemaster.NewListener(
 		"demo",
-		func(events []*listener.Event) {
+		func(events []*routemaster.Event) {
 			for _, e := range events {
 				log.Printf("%v\n", e)
 			}
