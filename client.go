@@ -128,19 +128,12 @@ func (c *Client) DeleteTopic(topic string) error {
 }
 
 // Push pushes an event to the Routemaster bus.
-func (c *Client) Push(e *Event) error {
+func (c *Client) Push(topic string, e *Event) error {
 	if err := e.validate(); err != nil {
 		return err
 	}
-
-	// Don't send Topic over the wire, since it's part of the URL.
-	wp := struct {
-		OmitTopic string `json:"topic,omitempty"`
-		*Event
-	}{Event: e}
-
-	path := fmt.Sprintf("/topics/%s", e.Topic)
-	return c.do(http.MethodPost, path, wp, nil)
+	path := fmt.Sprintf("/topics/%s", topic)
+	return c.do(http.MethodPost, path, e, nil)
 }
 
 // Unsubscribe unsubscribes a listener from a Routemaster topic.

@@ -42,27 +42,21 @@ func (s *Subscription) validate() error {
 
 // Event is a Routemaster event.
 type Event struct {
-	// Topic is the topic to which this event belongs.
-	Topic string `json:"topic,omitempty"`
-
 	// Type is one of create, update, delete, or noop.
 	Type string `json:"type"`
 
 	// URL is the authoritative URL of the entity corresponding to the event.
 	URL string `json:"url"`
 
-	// Timestamp is when the event occurerd. Optional.
+	// Timestamp is when the event occurred. Optional.
 	Timestamp int64 `json:"timestamp,omitempty"`
 
-	// Data is the payload associated with the event. Optional, and its use is
-	// discouraged.
+	// Data is the payload associated with the event. Optional, and its use
+	// is discouraged.
 	Data interface{} `json:"data,omitempty"`
 }
 
 func (e *Event) validate() error {
-	if e.Topic == "" {
-		return errors.New("routemaster: topic must be non-empty")
-	}
 	switch e.Type {
 	case "create", "update", "delete", "noop":
 	default:
@@ -76,6 +70,25 @@ func (e *Event) validate() error {
 		return errors.New("routemaster: URL must be https")
 	}
 	return nil
+}
+
+// ReceivedEvent is an event received by routemaster.
+type ReceivedEvent struct {
+	// Topic is the topic to which this event belongs.
+	Topic string `json:"topic"`
+
+	// Type is one of create, update, delete, or noop.
+	Type string `json:"type"`
+
+	// URL is the authoritative URL of the entity corresponding to the event.
+	URL string `json:"url"`
+
+	// Timestamp is when the event occurred. Optional.
+	Timestamp int64 `json:"t"`
+
+	// Data is the payload associated with the event. Optional, and its use
+	// is discouraged.
+	Data interface{} `json:"data,omitempty"`
 }
 
 // Token represents an API token.

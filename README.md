@@ -54,8 +54,7 @@ To unsubscribe from all topics:
 
 To push an event to the bus:
 
-	c.Push(&routemaster.Event{
-		Topic: "widgets",
+	c.Push("widgets", &routemaster.Event{
 		Type:  "create",
 		URL:   "https://app.example.com/widgets/1",
 		Data:  map[string]interface{}{
@@ -69,7 +68,7 @@ To listen to events published on the bus:
 
 	http.Handle("/", routemaster.NewListener(
 		"demo",
-		func(events []*routemaster.Event) {
+		func(events []*routemaster.ReceivedEvent) {
 			for _, e := range events {
 				log.Printf("%v\n", e)
 			}

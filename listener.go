@@ -9,7 +9,7 @@ import (
 
 // The HandlerFunc type represents a function signature for consuming events
 // received from Routemaster.
-type HandlerFunc func([]*Event)
+type HandlerFunc func([]*ReceivedEvent)
 
 // A Listener is an implementation of http.Handler that handles Routemaster
 // events.
@@ -34,7 +34,7 @@ func (l *Listener) error(w http.ResponseWriter, code int) {
 }
 
 // handleEvents runs the handler, catching any panics and returning a 500.
-func (l *Listener) handleEvents(w http.ResponseWriter, events []*Event) {
+func (l *Listener) handleEvents(w http.ResponseWriter, events []*ReceivedEvent) {
 	defer func() {
 		if err := recover(); err != nil {
 			l.error(w, http.StatusInternalServerError)
@@ -57,7 +57,7 @@ func (l *Listener) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var events []*Event
+	var events []*ReceivedEvent
 	err = json.Unmarshal(b, &events)
 	if err != nil || len(events) == 0 {
 		l.error(w, http.StatusBadRequest)

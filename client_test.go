@@ -102,10 +102,9 @@ func TestRequests(t *testing.T) {
 		{
 			name: "Push",
 			run: func(c *Client) error {
-				return c.Push(&Event{
-					Topic: "orders",
-					Type:  "create",
-					URL:   "https://orders/1",
+				return c.Push("orders", &Event{
+					Type: "create",
+					URL:  "https://orders/1",
 				})
 			},
 			method:   http.MethodPost,

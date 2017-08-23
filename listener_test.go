@@ -16,7 +16,8 @@ func TestListener(t *testing.T) {
 			[{
 				"topic": "orders",
 				"type": "create",
-				"url": "https://orders/1"
+				"url": "https://orders/1",
+				"t": 500
 			}]
 		`)
 
@@ -38,6 +39,9 @@ func TestListener(t *testing.T) {
 		}
 		if want := "https://orders/1"; r.events[0].URL != want {
 			t.Errorf("url: got %q, want %q", r.events[0].URL, want)
+		}
+		if want := int64(500); r.events[0].Timestamp != want {
+			t.Errorf("t: got %q, want %q", r.events[0].Timestamp, want)
 		}
 		if want, got := "", r.readBody(); want != got {
 			t.Errorf("body: got %q, want %q", got, want)
@@ -100,7 +104,7 @@ func TestListener(t *testing.T) {
 type testRunner struct {
 	uuid     string
 	panic    bool
-	events   []*Event
+	events   []*ReceivedEvent
 	response *http.Response
 }
 
@@ -109,7 +113,7 @@ func newTestRunner(uuid string) *testRunner {
 }
 
 func (t *testRunner) do(url, username, body string) {
-	listener := NewListener(t.uuid, func(events []*Event) {
+	listener := NewListener(t.uuid, func(events []*ReceivedEvent) {
 		if t.panic {
 			panic(errors.New("unknown error"))
 		}
