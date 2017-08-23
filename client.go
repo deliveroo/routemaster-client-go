@@ -93,22 +93,16 @@ func isHTTPSuccess(statusCode int) bool {
 	return false
 }
 
-// TokenResponse represents an API token.
-type TokenResponse struct {
-	Name  string `json:"name"`
-	Token string `json:"token"`
-}
-
 // GetTokens retrieves all registered API tokens.
-func (c *Client) GetTokens() ([]*TokenResponse, error) {
-	var response []*TokenResponse
+func (c *Client) GetTokens() ([]*Token, error) {
+	var response []*Token
 	err := c.do(http.MethodGet, "/api_tokens", nil, &response)
 	return response, err
 }
 
 // CreateToken creates an API token.
 func (c *Client) CreateToken(name string) (string, error) {
-	var response TokenResponse
+	var response Token
 	err := c.do(http.MethodPost, "/api_tokens", M{"name": name}, &response)
 	return response.Token, err
 }

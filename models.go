@@ -78,6 +78,12 @@ func (e *Event) validate() error {
 	return nil
 }
 
+// Token represents an API token.
+type Token struct {
+	Name  string `json:"name"`
+	Token string `json:"token"`
+}
+
 // Topic is a Routemaster topic.
 type Topic struct {
 	// Name of the topic.

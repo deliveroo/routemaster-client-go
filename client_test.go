@@ -56,7 +56,7 @@ func TestRequests(t *testing.T) {
 			name: "Get Token",
 			run: func(c *Client) error {
 				tokens, err := c.GetTokens()
-				assertDeepEq("tokens", tokens, []*TokenResponse{
+				assertDeepEq("tokens", tokens, []*Token{
 					{Name: "client", Token: "client-123"},
 				})
 				return err
