@@ -2,6 +2,7 @@ package routemaster
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +15,9 @@ type M map[string]interface{}
 
 // Config specifies the parameters needed to instantiate a Client.
 type Config struct {
+	// IgnoreSSL disables SSL verification for URL.
+	IgnoreSSL bool
+
 	// URL is the URL of the Routemaster bus.
 	URL string
 
@@ -45,9 +49,17 @@ func NewClient(config *Config) (*Client, error) {
 	if err := config.validate(); err != nil {
 		return nil, err
 	}
+
+	client := http.DefaultClient
+	if config.IgnoreSSL {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	}
 	return &Client{
 		config: config,
-		client: &http.Client{},
+		client: client,
 	}, nil
 }
 
