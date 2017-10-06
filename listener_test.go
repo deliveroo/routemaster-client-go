@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -65,6 +67,13 @@ func TestListener(t *testing.T) {
 		if want, got := "400 Bad Request\n", r.readBody(); want != got {
 			t.Errorf("body: got %q, want %q", got, want)
 		}
+
+		// Logs should contain "bad request" and the JSON that was
+		// passed in.
+		logs := r.readLogs()
+		if !strings.Contains(logs, "routemaster: bad request") || !strings.Contains(logs, "https://orders/1") {
+			t.Errorf("logs: missing bad request or bad input, got: %s", logs)
+		}
 	})
 
 	t.Run("bad auth", func(t *testing.T) {
@@ -77,6 +86,11 @@ func TestListener(t *testing.T) {
 		}
 		if want, got := "401 Unauthorized\n", r.readBody(); want != got {
 			t.Errorf("body: got %q, want %q", got, want)
+		}
+		// Logs should contain "unauthorized".
+		logs := r.readLogs()
+		if !strings.Contains(logs, "routemaster: unauthorized") {
+			t.Errorf("logs: missing bad request or bad input, got: %s", logs)
 		}
 	})
 
@@ -98,14 +112,20 @@ func TestListener(t *testing.T) {
 		if want, got := "500 Internal Server Error\n", r.readBody(); want != got {
 			t.Errorf("body: got %q, want %q", got, want)
 		}
+
+		wantLog := `"What":"routemaster: panic during event handler","Data":{"error":"unknown error"}`
+		if !strings.Contains(r.readLogs(), wantLog) {
+			t.Errorf("logs: didn't contain %q", wantLog)
+		}
 	})
 }
 
 type testRunner struct {
-	uuid     string
-	panic    bool
-	events   []*ReceivedEvent
-	response *http.Response
+	uuid      string
+	panic     bool
+	events    []*ReceivedEvent
+	response  *http.Response
+	logBuffer bytes.Buffer
 }
 
 func newTestRunner(uuid string) *testRunner {
@@ -113,12 +133,13 @@ func newTestRunner(uuid string) *testRunner {
 }
 
 func (t *testRunner) do(url, username, body string) {
+	logger := log.New(&t.logBuffer, "", 0)
 	listener := NewListener(t.uuid, func(events []*ReceivedEvent) {
 		if t.panic {
 			panic(errors.New("unknown error"))
 		}
 		t.events = events
-	})
+	}, logger)
 	ts := httptest.NewServer(listener)
 	req, err := http.NewRequest(http.MethodPost, ts.URL+url, bytes.NewBufferString(body))
 	req.SetBasicAuth(username, "")
@@ -132,4 +153,10 @@ func (t *testRunner) readBody() string {
 	body, err := ioutil.ReadAll(t.response.Body)
 	must(err)
 	return string(body)
+}
+
+func (t *testRunner) readLogs() string {
+	result := t.logBuffer.String()
+	t.logBuffer = bytes.Buffer{}
+	return result
 }
