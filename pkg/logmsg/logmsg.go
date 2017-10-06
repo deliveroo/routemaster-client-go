@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/deliveroo/editions-api/pkg/glog"
-	"github.com/deliveroo/editions-api/pkg/stacktrace"
+	"github.com/deliveroo/routemaster-client-go/pkg/glog"
+	"github.com/deliveroo/routemaster-client-go/pkg/stacktrace"
 )
 
 // Message is a structured log message.
