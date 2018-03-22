@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/deliveroo/routemaster-client-go/pkg/glog"
 	"github.com/deliveroo/routemaster-client-go/pkg/stacktrace"
 )
 
@@ -134,30 +133,6 @@ func (m *Message) MarshalJSON() ([]byte, error) {
 		Context: m.context,
 		Data:    m.data,
 	})
-}
-
-// Print calls glog.Print(m) with glog.Flags set to 0.
-func (m *Message) Print() {
-	flags := glog.Flags()
-	glog.SetFlags(0)
-	defer glog.SetFlags(flags)
-	glog.Print(m)
-}
-
-// Fatal calls glog.Fatal(m) with glog.Flags set to 0.
-func (m *Message) Fatal() {
-	flags := glog.Flags()
-	glog.SetFlags(0)
-	defer glog.SetFlags(flags)
-	glog.Fatal(m)
-}
-
-// Panic calls glog.Panic(m) with glog.Flags set to 0.
-func (m *Message) Panic() {
-	flags := glog.Flags()
-	glog.SetFlags(0)
-	defer glog.SetFlags(flags)
-	glog.Panic(m)
 }
 
 func newMessage(level level, what string, ctx Context) *Message {
