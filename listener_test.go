@@ -71,7 +71,7 @@ func TestListener(t *testing.T) {
 		// Logs should contain "bad request" and the JSON that was
 		// passed in.
 		logs := r.readLogs()
-		if !strings.Contains(logs, "routemaster: bad request") || !strings.Contains(logs, "https://orders/1") {
+		if !strings.Contains(logs, "body malformed") || !strings.Contains(logs, "https://orders/1") {
 			t.Errorf("logs: missing bad request or bad input, got: %s", logs)
 		}
 	})
@@ -87,10 +87,10 @@ func TestListener(t *testing.T) {
 		if want, got := "401 Unauthorized\n", r.readBody(); want != got {
 			t.Errorf("body: got %q, want %q", got, want)
 		}
-		// Logs should contain "unauthorized".
-		logs := r.readLogs()
-		if !strings.Contains(logs, "routemaster: unauthorized") {
-			t.Errorf("logs: missing bad request or bad input, got: %s", logs)
+
+		wantLog := "bad token"
+		if !strings.Contains(r.readLogs(), wantLog) {
+			t.Errorf("logs: got %q, want %q", r.readLogs(), wantLog)
 		}
 	})
 
@@ -112,16 +112,41 @@ func TestListener(t *testing.T) {
 		if want, got := "500 Internal Server Error\n", r.readBody(); want != got {
 			t.Errorf("body: got %q, want %q", got, want)
 		}
-
-		wantLog := `"What":"routemaster: panic during event handler","Data":{"error":"unknown error"}`
+		wantLog := "panic error"
 		if !strings.Contains(r.readLogs(), wantLog) {
-			t.Errorf("logs: didn't contain %q", wantLog)
+			t.Errorf("logs: got %q, want %q", r.readLogs(), wantLog)
+		}
+	})
+
+	t.Run("error in handler", func(t *testing.T) {
+		r := newTestRunner("secret")
+		r.error = true
+		r.do("/events", "secret", `
+			[{
+				"topic": "orders",
+				"type": "create",
+				"url": "https://orders/1"
+			}]
+		`)
+		if want := http.StatusInternalServerError; r.response.StatusCode != want {
+			t.Errorf("status: got %d, want %d", r.response.StatusCode, want)
+			t.FailNow()
+
+		}
+		if want, got := "500 Internal Server Error\n", r.readBody(); want != got {
+			t.Errorf("body: got %q, want %q", got, want)
+		}
+
+		wantLog := "unknown error"
+		if !strings.Contains(r.readLogs(), wantLog) {
+			t.Errorf("logs: got %q, want %q", r.readLogs(), wantLog)
 		}
 	})
 }
 
 type testRunner struct {
 	uuid      string
+	error     bool
 	panic     bool
 	events    []*ReceivedEvent
 	response  *http.Response
@@ -134,12 +159,23 @@ func newTestRunner(uuid string) *testRunner {
 
 func (t *testRunner) do(url, username, body string) {
 	logger := log.New(&t.logBuffer, "", 0)
-	listener := NewListener(t.uuid, func(events []*ReceivedEvent) {
-		if t.panic {
-			panic(errors.New("unknown error"))
-		}
-		t.events = events
-	}, logger)
+	listener := NewListener(&ListenerConfig{
+		Handler: func(events []*ReceivedEvent) error {
+			if t.panic {
+				panic(errors.New("panic error"))
+			}
+			if t.error {
+				return errors.New("unknown error")
+			}
+			t.events = events
+			return nil
+		},
+		Logger: logger,
+		OnError: func(err error) {
+			logger.Println(err.Error())
+		},
+		UUID: t.uuid,
+	})
 	ts := httptest.NewServer(listener)
 	req, err := http.NewRequest(http.MethodPost, ts.URL+url, bytes.NewBufferString(body))
 	req.SetBasicAuth(username, "")
