@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
-	"github.com/deliveroo/routemaster-client-go/pkg/glog"
 	"github.com/deliveroo/routemaster-client-go/pkg/logmsg"
 )
 
@@ -20,16 +20,24 @@ type HandlerFunc func([]*ReceivedEvent)
 type Listener struct {
 	uuid    string
 	handler HandlerFunc
-	logger  *log.Logger
+	logger  logger
 }
 
 // NewListener creates a new handler for receiving Routemaster events.
-func NewListener(uuid string, handler HandlerFunc, logger *log.Logger) *Listener {
+func NewListener(uuid string, handler HandlerFunc, logger logger) *Listener {
 	return &Listener{
 		uuid:    uuid,
 		handler: handler,
-		logger:  glog.DefaultLogger(logger),
+		logger:  defaultLogger(logger),
 	}
+}
+
+// Returns a default logger that logs to stderr if nil.
+func defaultLogger(l logger) logger {
+	if l == nil {
+		return log.New(os.Stderr, "routemaster: ", log.LstdFlags)
+	}
+	return l
 }
 
 // error replies to the request with the specified HTTP code, and a simple
@@ -75,4 +83,10 @@ func (l *Listener) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	l.handleEvents(w, events)
+}
+
+// Allows clients of this library to pass a logger that satisfies this
+// basic capability.
+type logger interface {
+	Print(v ...interface{})
 }
