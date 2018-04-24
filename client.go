@@ -82,7 +82,11 @@ func (c *Client) do(method, path string, body interface{}, result interface{}) e
 	if !isHTTPSuccess(resp.StatusCode) {
 		defer resp.Body.Close()
 		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("routemaster/client: bad status code: %s\n%s", resp.Status, string(body))
+		return &clientError{
+			status:   resp.Status,
+			respBody: body,
+			reqBody:  bodyBytes,
+		}
 	}
 	if result != nil {
 		defer resp.Body.Close()
@@ -95,6 +99,28 @@ func (c *Client) do(method, path string, body interface{}, result interface{}) e
 		}
 	}
 	return nil
+}
+
+type clientError struct {
+	status   string
+	respBody []byte
+	reqBody  []byte
+}
+
+func (e *clientError) RequestBody() []byte {
+	return e.reqBody
+}
+
+func (e *clientError) ResponseBody() []byte {
+	return e.respBody
+}
+
+func (e *clientError) Error() string {
+	return fmt.Sprintf("routemaster/client: status=%s response=%s request=%s",
+		e.status,
+		string(e.respBody),
+		string(e.reqBody),
+	)
 }
 
 func isHTTPSuccess(statusCode int) bool {
