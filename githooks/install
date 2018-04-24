@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+BASEDIR=`cd $(dirname "$0") && dirname $(git rev-parse --git-dir)`
+GITDIR=${BASEDIR}/.git
+HOOKSDIR=${BASEDIR}/githooks
+
+for file in applypatch-msg commit-msg post-applypatch post-checkout post-commit post-merge post-receive pre-applypatch pre-auto-gc pre-commit prepare-commit-msg pre-rebase pre-receive update pre-push; do
+    if [[ -f ${HOOKSDIR}/${file} ]]; then
+	if [[ ! -f ${GITDIR}/hooks/${file} ]]; then
+	    echo "${GITDIR}/hooks/${file}";
+	    ln -s ${HOOKSDIR}/${file} ${GITDIR}/hooks/${file};
+	else
+	    echo "${GITDIR}/hooks/${file} (skipping)";
+	fi
+    fi
+done
