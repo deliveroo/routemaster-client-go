@@ -21,7 +21,7 @@ lint: link
 	@cd $(SRC) && golint
 
 test: build
-	@cd ${SRC} && go test
+	@cd ${SRC} && go test -v
 
 cover: build
 	@cd ${SRC} && go test -cover
