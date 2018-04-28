@@ -83,9 +83,10 @@ func (c *Client) do(method, path string, body interface{}, result interface{}) e
 		defer resp.Body.Close()
 		body, _ := ioutil.ReadAll(resp.Body)
 		return &clientError{
-			status:   resp.Status,
-			respBody: body,
-			reqBody:  bodyBytes,
+			status:      resp.Status,
+			respHeaders: resp.Header,
+			respBody:    body,
+			reqBody:     bodyBytes,
 		}
 	}
 	if result != nil {
@@ -102,9 +103,19 @@ func (c *Client) do(method, path string, body interface{}, result interface{}) e
 }
 
 type clientError struct {
-	status   string
-	respBody []byte
-	reqBody  []byte
+	status      string
+	statusCode  int
+	respHeaders http.Header
+	respBody    []byte
+	reqBody     []byte
+}
+
+func (e *clientError) ResponseHeaders() http.Header {
+	return e.respHeaders
+}
+
+func (e *clientError) StatusCode() int {
+	return e.statusCode
 }
 
 func (e *clientError) RequestBody() []byte {
@@ -116,10 +127,11 @@ func (e *clientError) ResponseBody() []byte {
 }
 
 func (e *clientError) Error() string {
-	return fmt.Sprintf("routemaster/client: status=%s response=%s request=%s",
+	return fmt.Sprintf("routemaster/client: status=%s response=%s request=%s respHeaders=%v",
 		e.status,
 		string(e.respBody),
 		string(e.reqBody),
+		e.ResponseHeaders(),
 	)
 }
 
