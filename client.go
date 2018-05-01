@@ -84,6 +84,7 @@ func (c *Client) do(method, path string, body interface{}, result interface{}) e
 		body, _ := ioutil.ReadAll(resp.Body)
 		return &clientError{
 			status:      resp.Status,
+			statusCode:  resp.StatusCode,
 			respHeaders: resp.Header,
 			respBody:    body,
 			reqBody:     bodyBytes,
@@ -110,12 +111,12 @@ type clientError struct {
 	reqBody     []byte
 }
 
-func (e *clientError) ResponseHeaders() http.Header {
-	return e.respHeaders
+func (e *clientError) HTTPStatusCode() int {
+	return e.statusCode
 }
 
-func (e *clientError) StatusCode() int {
-	return e.statusCode
+func (e *clientError) ResponseHeaders() http.Header {
+	return e.respHeaders
 }
 
 func (e *clientError) RequestBody() []byte {
