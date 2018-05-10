@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 // M is shorthand for map[string]interface{}.
@@ -81,12 +83,19 @@ func (c *Client) do(method, path string, body interface{}, result interface{}) e
 	}
 	if !isHTTPSuccess(resp.StatusCode) {
 		defer resp.Body.Close()
-		body, _ := ioutil.ReadAll(resp.Body)
+		body := &strings.Builder{}
+		_, _ = io.Copy(body, resp.Body)
+
+		// Dump request headers sans Authorization.
+		reqHeaders := &strings.Builder{}
+		_ = req.Header.WriteSubset(reqHeaders, excludedHeaders)
+
 		return &clientError{
 			status:      resp.Status,
 			statusCode:  resp.StatusCode,
 			respHeaders: resp.Header,
-			respBody:    body,
+			respBody:    body.String(),
+			reqHeaders:  reqHeaders.String(),
 			reqBody:     bodyBytes,
 		}
 	}
@@ -103,12 +112,20 @@ func (c *Client) do(method, path string, body interface{}, result interface{}) e
 	return nil
 }
 
+// excludedHeaders satisfies the API of http.Header.WriteSubset.
+var excludedHeaders = map[string]bool{"Authorization": true}
+
 type clientError struct {
 	status      string
 	statusCode  int
-	respHeaders http.Header
-	respBody    []byte
 	reqBody     []byte
+	reqHeaders  string
+	respBody    string
+	respHeaders http.Header
+}
+
+func (e *clientError) ResponseBody() string {
+	return e.respBody
 }
 
 func (e *clientError) HTTPStatusCode() int {
@@ -123,16 +140,17 @@ func (e *clientError) RequestBody() []byte {
 	return e.reqBody
 }
 
-func (e *clientError) ResponseBody() []byte {
-	return e.respBody
+func (e *clientError) RequestHeaders() string {
+	return e.reqHeaders
 }
 
 func (e *clientError) Error() string {
-	return fmt.Sprintf("routemaster/client: status=%s response=%s request=%s respHeaders=%v",
+	return fmt.Sprintf("routemaster/client: status=%s response=%s request=%s respHeaders=%v requestHeaders=%v",
 		e.status,
-		string(e.respBody),
+		e.respBody,
 		string(e.reqBody),
-		e.ResponseHeaders(),
+		e.respHeaders,
+		string(e.reqHeaders),
 	)
 }
 
