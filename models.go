@@ -1,6 +1,7 @@
 package routemaster
 
 import (
+	"encoding/json"
 	"errors"
 	"net/url"
 )
@@ -88,7 +89,7 @@ type ReceivedEvent struct {
 
 	// Data is the payload associated with the event. Optional, and its use
 	// is discouraged.
-	Data interface{} `json:"data,omitempty"`
+	Data json.RawMessage `json:"data"`
 }
 
 // Token represents an API token.

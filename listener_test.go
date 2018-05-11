@@ -2,6 +2,7 @@ package routemaster
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -45,6 +46,37 @@ func TestListener(t *testing.T) {
 		}
 		if want, got := "", r.readBody(); want != got {
 			t.Errorf("body: got %q, want %q", got, want)
+		}
+	})
+
+	t.Run("data payload", func(t *testing.T) {
+		r := newTestRunner("secret")
+		r.do("/events", "secret", `
+			[{
+				"topic": "orders",
+				"type": "create",
+				"url": "https://orders/1",
+				"t": 500,
+				"data": { "restaurant_id": 123 }
+			}]
+		`)
+
+		if want := http.StatusOK; r.response.StatusCode != want {
+			t.Fatalf("status: got %d, want %d", r.response.StatusCode, want)
+		}
+
+		if len(r.events) == 0 {
+			t.Fatal("no event received")
+		}
+
+		event := r.events[0]
+		var data struct {
+			RestaurantID int `json:"restaurant_id"`
+		}
+		must(json.Unmarshal(event.Data, &data))
+
+		if data.RestaurantID != 123 {
+			t.Errorf("data.RestaurantID: got %d, want %d", data.RestaurantID, 123)
 		}
 	})
 
