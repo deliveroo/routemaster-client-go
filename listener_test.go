@@ -24,13 +24,11 @@ func TestListener(t *testing.T) {
 		`)
 
 		if want := http.StatusOK; r.response.StatusCode != want {
-			t.Errorf("status: got %d, want %d", r.response.StatusCode, want)
-			t.FailNow()
+			t.Fatalf("status: got %d, want %d", r.response.StatusCode, want)
 		}
 
 		if len(r.events) == 0 {
-			t.Error("no event received")
-			t.FailNow()
+			t.Fatal("no event received")
 		}
 
 		if want := "orders"; r.events[0].Topic != want {
@@ -61,8 +59,7 @@ func TestListener(t *testing.T) {
 		`)
 
 		if want := http.StatusBadRequest; r.response.StatusCode != want {
-			t.Errorf("status: got %d, want %d", r.response.StatusCode, want)
-			t.FailNow()
+			t.Fatalf("status: got %d, want %d", r.response.StatusCode, want)
 		}
 		if want, got := "400 Bad Request\n", r.readBody(); want != got {
 			t.Errorf("body: got %q, want %q", got, want)
@@ -81,8 +78,7 @@ func TestListener(t *testing.T) {
 		r.do("/events", "wrong password", "")
 
 		if want := http.StatusUnauthorized; r.response.StatusCode != want {
-			t.Errorf("status: got %d, want %d", r.response.StatusCode, want)
-			t.FailNow()
+			t.Fatalf("status: got %d, want %d", r.response.StatusCode, want)
 		}
 		if want, got := "401 Unauthorized\n", r.readBody(); want != got {
 			t.Errorf("body: got %q, want %q", got, want)
@@ -105,8 +101,7 @@ func TestListener(t *testing.T) {
 			}]
 		`)
 		if want := http.StatusInternalServerError; r.response.StatusCode != want {
-			t.Errorf("status: got %d, want %d", r.response.StatusCode, want)
-			t.FailNow()
+			t.Fatalf("status: got %d, want %d", r.response.StatusCode, want)
 
 		}
 		if want, got := "500 Internal Server Error\n", r.readBody(); want != got {
@@ -129,8 +124,7 @@ func TestListener(t *testing.T) {
 			}]
 		`)
 		if want := http.StatusInternalServerError; r.response.StatusCode != want {
-			t.Errorf("status: got %d, want %d", r.response.StatusCode, want)
-			t.FailNow()
+			t.Fatalf("status: got %d, want %d", r.response.StatusCode, want)
 
 		}
 		if want, got := "500 Internal Server Error\n", r.readBody(); want != got {
