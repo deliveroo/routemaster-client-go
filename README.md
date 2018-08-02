@@ -67,7 +67,7 @@ To listen to events published on the bus:
 ```go
 http.Handle("/", routemaster.NewListener(
     "demo",
-    func(events []*routemaster.ReceivedEvent) {
+    func(events []*routemaster.ReceivedEvent) error {
         for _, e := range events {
             log.Printf("%v\n", e)
         }
