@@ -1,6 +1,7 @@
 # Routemaster Client
 
 [![Build Status](https://travis-ci.com/deliveroo/routemaster-client-go.svg?token=Cn6Bjq9ZZa5MrmKhd9RW&branch=master)](https://travis-ci.com/deliveroo/routemaster-client-go)
+[![GoDoc](https://godoc.org/github.com/deliveroo/routemaster-client-go?status.svg)](http://godoc.org/github.com/deliveroo/routemaster-client-go)
 
 `package routemaster`
 
